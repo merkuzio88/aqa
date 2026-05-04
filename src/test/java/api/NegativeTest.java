@@ -3,6 +3,7 @@ package api;
 import io.qameta.allure.Allure;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
+import io.qameta.allure.restassured.AllureRestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,16 +19,19 @@ public class NegativeTest extends BaseTest {
     @Test
     @DisplayName("Ошибка доступа при неверном X-Api-Key")
     public void testInvalidApiKey() {
-        Allure.step("Отправка запроса с невалидным X-Api-Key");
-        given()
-                .header("X-Api-Key", "WRONG_KEY_123")
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("token", generateValidToken())
-                .formParam("action", "LOGIN")
-                .when()
-                .post(APP_URL)
-                .then()
-                .statusCode(anyOf(equalTo(401), equalTo(403)));
+        Allure.step("Отправка запроса с невалидным X-Api-Key", () -> {
+            given()
+                    .baseUri(APP_URL)
+                    .header("X-Api-Key", "WRONG_KEY_123")
+                    .contentType("application/x-www-form-urlencoded")
+                    .filter(new AllureRestAssured())
+                    .formParam("token", generateValidToken())
+                    .formParam("action", "LOGIN")
+                    .when()
+                    .post()
+                    .then()
+                    .statusCode(anyOf(equalTo(401), equalTo(403)));
+        });
     }
 
     @Test
@@ -35,12 +39,14 @@ public class NegativeTest extends BaseTest {
     public void testInvalidTokenLength() {
         String shortToken = "1234567890123456789012345678901";
 
-        given().spec(baseRequest)
-                .formParam("token", shortToken)
-                .formParam("action", "LOGIN")
-                .post()
-                .then()
-                .statusCode(400);
+        Allure.step("Попытка авторизации с токеном длиной 31 символ", () -> {
+            given().spec(baseRequest)
+                    .formParam("token", shortToken)
+                    .formParam("action", "LOGIN")
+                    .post()
+                    .then()
+                    .statusCode(400);
+        });
     }
 
     @Test
@@ -51,11 +57,13 @@ public class NegativeTest extends BaseTest {
         stubFor(post(urlEqualTo("/auth")).willReturn(aResponse().withStatus(500)));
         Allure.step("Мок: внешний сервис /auth сломался и отвечает 500");
 
-        given().spec(baseRequest)
-                .formParam("token", token)
-                .formParam("action", "LOGIN")
-                .post()
-                .then()
-                .body("result", equalTo("ERROR"));
+        Allure.step("Попытка авторизации при недоступном внешнем сервисе", () -> {
+            given().spec(baseRequest)
+                    .formParam("token", token)
+                    .formParam("action", "LOGIN")
+                    .post()
+                    .then()
+                    .body("result", equalTo("ERROR"));
+        });
     }
 }
