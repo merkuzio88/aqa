@@ -13,6 +13,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.Random;
 
 public abstract class BaseTest {
@@ -20,18 +22,24 @@ public abstract class BaseTest {
     protected static WireMockServer wireMockServer;
     protected static RequestSpecification baseRequest;
 
-    protected static final String APP_URL = "http://localhost:8080/endpoint";
-    protected static final String API_KEY = "qazWSXedc";
+    protected static String appUrl;
+    protected static String apiKey;
+    protected static int mockPort;
 
     @BeforeAll
     public static void globalSetup() {
-        wireMockServer = new WireMockServer(8888);
-        wireMockServer.start();
-        WireMock.configureFor("localhost", 8888);
+        // Читаем файл properties перед запуском тестов
+        loadProperties();
 
+        // Поднимаем мок-сервер на порту из конфига
+        wireMockServer = new WireMockServer(mockPort);
+        wireMockServer.start();
+        WireMock.configureFor("localhost", mockPort);
+
+        // Настраиваем RestAssured с URL и ключом из конфига
         baseRequest = new RequestSpecBuilder()
-                .setBaseUri(APP_URL)
-                .addHeader("X-Api-Key", API_KEY)
+                .setBaseUri(appUrl)
+                .addHeader("X-Api-Key", apiKey)
                 .setContentType(ContentType.URLENC)
                 .setAccept(ContentType.JSON)
                 .addFilter(new RequestLoggingFilter())
@@ -40,8 +48,27 @@ public abstract class BaseTest {
                 .build();
     }
 
+    private static void loadProperties() {
+        // Читаем файл application.properties из папки src/test/resources
+        try (InputStream input = BaseTest.class.getClassLoader().getResourceAsStream("application.properties")) {
+            Properties prop = new Properties();
+            if (input == null) {
+                throw new RuntimeException("Файл application.properties не найден в папке resources");
+            }
+            prop.load(input);
+
+            // Инициализируем переменные
+            appUrl = prop.getProperty("base.url");
+            apiKey = prop.getProperty("api.key");
+            mockPort = Integer.parseInt(prop.getProperty("mock.port"));
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при загрузке конфигурации: " + e.getMessage());
+        }
+    }
+
     @BeforeEach
     public void resetMocks() {
+        // Сбрасываем моки перед каждым тестом
         WireMock.reset();
     }
 
@@ -55,7 +82,7 @@ public abstract class BaseTest {
     @Step("Генерация нового случайного токена (только цифры для обхода бага валидации)")
     protected String generateValidToken() {
         StringBuilder token = new StringBuilder();
-        java.util.Random rnd = new java.util.Random();
+        Random rnd = new Random();
         while (token.length() < 32) {
             token.append(rnd.nextInt(10));
         }

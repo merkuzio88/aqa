@@ -6,6 +6,8 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.restassured.AllureRestAssured;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.restassured.RestAssured.given;
@@ -21,7 +23,7 @@ public class NegativeTest extends BaseTest {
     public void testInvalidApiKey() {
         Allure.step("Отправка запроса с невалидным X-Api-Key", () -> {
             given()
-                    .baseUri(APP_URL)
+                    .baseUri(appUrl)
                     .header("X-Api-Key", "WRONG_KEY_123")
                     .contentType("application/x-www-form-urlencoded")
                     .filter(new AllureRestAssured())
@@ -34,14 +36,18 @@ public class NegativeTest extends BaseTest {
         });
     }
 
-    @Test
-    @DisplayName("Ошибка валидации при длине токена меньше 32 символов")
-    public void testInvalidTokenLength() {
-        String shortToken = "1234567890123456789012345678901";
-
-        Allure.step("Попытка авторизации с токеном длиной 31 символ", () -> {
+    @ParameterizedTest(name = "Ошибка валидации при отправке токена: \"{0}\"")
+    @ValueSource(strings = {
+            "1234567890123456789012345678901",  // 31 символ (меньше)
+            "123456789012345678901234567890123", // 33 символа (больше)
+            "",                                  // Пустой токен
+            "USER1234567890123456789012345678"   // Токен с буквами
+    })
+    @DisplayName("Валидация форматов токена")
+    public void testInvalidTokenFormats(String invalidToken) {
+        Allure.step("Попытка авторизации с токеном: " + invalidToken, () -> {
             given().spec(baseRequest)
-                    .formParam("token", shortToken)
+                    .formParam("token", invalidToken)
                     .formParam("action", "LOGIN")
                     .post()
                     .then()
