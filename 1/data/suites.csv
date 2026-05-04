@@ -1,8 +1,0 @@
-"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"","19","Ошибка валидации при длине токена меньше 32 символов","","Mon May 04 04:00:43 UTC 2026","broken","Mon May 04 04:00:44 UTC 2026","","api.NegativeTest","api.NegativeTest","testInvalidTokenLength"
-"","31","Ошибка доступа при неверном X-Api-Key","","Mon May 04 04:00:44 UTC 2026","broken","Mon May 04 04:00:44 UTC 2026","","api.NegativeTest","api.NegativeTest","testInvalidApiKey"
-"","53","Обработка ошибки 500 от внешнего сервиса","","Mon May 04 04:00:43 UTC 2026","broken","Mon May 04 04:00:43 UTC 2026","","api.NegativeTest","api.NegativeTest","testExternalServiceError"
-"","26","Отказ в ACTION без предварительного LOGIN","","Mon May 04 04:00:43 UTC 2026","broken","Mon May 04 04:00:43 UTC 2026","","api.WorkflowTest","api.WorkflowTest","testActionWithoutLogin"
-"","42","Успешная авторизация (LOGIN)","","Mon May 04 04:00:44 UTC 2026","broken","Mon May 04 04:00:44 UTC 2026","","api.LoginTest","api.LoginTest","testSuccessfulLogin"
-"","35","Успешный LOGOUT убивает сессию (ACTION не работает)","","Mon May 04 04:00:43 UTC 2026","broken","Mon May 04 04:00:43 UTC 2026","","api.WorkflowTest","api.WorkflowTest","testLogoutKillsSession"
-"","1583","Успешное выполнение ACTION после успешного LOGIN","","Mon May 04 04:00:42 UTC 2026","broken","Mon May 04 04:00:43 UTC 2026","","api.WorkflowTest","api.WorkflowTest","testActionAfterSuccessfulLogin"
